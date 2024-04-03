@@ -2,16 +2,17 @@ import { Server } from "socket.io";
 import Redis from "ioredis";
 
 const pub = new Redis({
-    host:"redis-2a641a9f-shreyash8402-82c5.a.aivencloud.com",
-    port:18887,
-    username:"default",
-    password:"AVNS_UY6uZlwMzpvLVLFLPKm",
+  host: "redis-2a641a9f-shreyash8402-82c5.a.aivencloud.com",
+  port: 18887,
+  username: "default",
+  password: "AVNS_UY6uZlwMzpvLVLFLPKm",
 });
+
 const sub = new Redis({
-    host:"redis-2a641a9f-shreyash8402-82c5.a.aivencloud.com",
-    port:18887,
-    username:"default",
-    password:"AVNS_UY6uZlwMzpvLVLFLPKm",
+  host: "redis-2a641a9f-shreyash8402-82c5.a.aivencloud.com",
+  port: 18887,
+  username: "default",
+  password: "AVNS_UY6uZlwMzpvLVLFLPKm",
 });
 
 class SocketService {
@@ -25,6 +26,7 @@ class SocketService {
         origin: "*",
       },
     });
+    sub.subscribe("MESSAGES");
   }
 
   public initListeners() {
@@ -35,7 +37,14 @@ class SocketService {
 
       socket.on("event:message", async ({ message }: { message: String }) => {
         console.log(`message ${message}`);
+        await pub.publish("MESSAGES", JSON.stringify({ message }));
       });
+    });
+
+    sub.on("message", async (channel, message) => {
+      if (channel === "MESSAGES") {
+        this.io.emit("message", message);
+      }
     });
   }
 
